@@ -1,7 +1,8 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { hydrate, useAppStore } from './src/state';
 import {
   BoardView,
@@ -25,47 +26,58 @@ export default function App() {
   }, []);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaView style={styles.safe}>
-        <StatusBar style="light" />
-        <View style={styles.header}>
-          <Text style={styles.brand}>branchxo</Text>
-          <Text style={styles.sub}>multiverse tic-tac-toe</Text>
-        </View>
-
-        <HeaderSummary />
-
-        <View style={styles.switcher}>
-          <ViewSwitcher />
-        </View>
-
-        <ScrollView contentContainerStyle={styles.main}>
-          {!hydrated && <Text style={styles.dim}>loading…</Text>}
-          {view === 'board' && (
-            <>
-              <BoardView />
-              <TimelineStrip />
-              <ProbabilityChart />
-            </>
-          )}
-          {view === 'timeline' && (
-            <>
-              <TimelineStrip />
-              <BoardView />
-            </>
-          )}
-          {view === 'tree' && <MultiverseTree />}
-          {view === 'heat' && <HeatView />}
-
-          <View style={styles.settings}>
-            <Text style={styles.sectionTitle}>Settings</Text>
-            <SettingsPanel />
+    <SafeAreaProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaView style={styles.safe} edges={['top', 'left', 'right', 'bottom']}>
+          <StatusBar style="light" />
+          <View style={styles.header}>
+            <Text style={styles.brand} accessibilityRole="header">branchxo</Text>
+            <Text style={styles.sub}>multiverse tic-tac-toe</Text>
           </View>
-        </ScrollView>
 
-        <BranchPromptModal />
-      </SafeAreaView>
-    </GestureHandlerRootView>
+          <HeaderSummary />
+
+          <View style={styles.switcher}>
+            <ViewSwitcher />
+          </View>
+
+          <ScrollView
+            contentContainerStyle={styles.main}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            {!hydrated ? (
+              <Text style={styles.dim}>loading…</Text>
+            ) : (
+              <>
+                {view === 'board' && (
+                  <>
+                    <BoardView />
+                    <TimelineStrip />
+                    <ProbabilityChart />
+                  </>
+                )}
+                {view === 'timeline' && (
+                  <>
+                    <TimelineStrip />
+                    <BoardView />
+                  </>
+                )}
+                {view === 'tree' && <MultiverseTree />}
+                {view === 'heat' && <HeatView />}
+
+                <View style={styles.settings}>
+                  <Text style={styles.sectionTitle}>Settings</Text>
+                  <SettingsPanel />
+                </View>
+              </>
+            )}
+          </ScrollView>
+
+          <BranchPromptModal />
+        </SafeAreaView>
+      </GestureHandlerRootView>
+    </SafeAreaProvider>
   );
 }
 

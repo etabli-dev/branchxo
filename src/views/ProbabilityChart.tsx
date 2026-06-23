@@ -77,6 +77,10 @@ export function ProbabilityChart() {
               <Path path={buildPath(points.pX)} color={colors.markX} style="stroke" strokeWidth={2} />
               <Path path={buildPath(points.pO)} color={colors.markO} style="stroke" strokeWidth={2} />
               <Path path={buildPath(points.pD)} color={colors.outcomeDraw} style="stroke" strokeWidth={2} />
+              {/* dot for each data point so a 1-point history is still visible */}
+              {points.x.map((x, i) => (
+                <Circle key={`dot-${i}`} cx={x} cy={points.pX[i] ?? 0} r={2} color={colors.markX} />
+              ))}
             </>
           )}
           {swingPly !== null && history.length > 1 && (() => {
@@ -88,15 +92,22 @@ export function ProbabilityChart() {
             );
           })()}
         </Canvas>
-        {/* x-axis labels (DOM text overlay) */}
-        {points.plies.map((ply, i) => (
-          <Text
-            key={`xlbl-${i}`}
-            style={[styles.tickLabel, { left: (points.x[i] ?? 0) - 6, top: H - PAD_B + 4 }]}
-          >
-            {ply}
-          </Text>
-        ))}
+        {/* x-axis labels (DOM text overlay) — subsample to avoid overlap */}
+        {points.plies.map((ply, i) => {
+          // show every label only when there are <=5 points; otherwise show first, last, and every Nth
+          const n = points.plies.length;
+          const stride = n <= 5 ? 1 : Math.max(1, Math.ceil((n - 1) / 4));
+          const isEdge = i === 0 || i === n - 1;
+          if (!isEdge && i % stride !== 0) return null;
+          return (
+            <Text
+              key={`xlbl-${i}`}
+              style={[styles.tickLabel, { left: (points.x[i] ?? 0) - 6, top: H - PAD_B + 4 }]}
+            >
+              {ply}
+            </Text>
+          );
+        })}
         {/* y-axis labels at 0 / 0.5 / 1 */}
         <Text style={[styles.yTick, { top: PAD_T - 7 }]}>1</Text>
         <Text style={[styles.yTick, { top: PAD_T + (H - PAD_T - PAD_B) / 2 - 7 }]}>0.5</Text>

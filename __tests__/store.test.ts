@@ -183,3 +183,66 @@ describe('AI thinking flag (audit P1-2)', () => {
     expect(sawThinking).toBe(true);
   });
 });
+
+describe('audit R3-P1-H: triggerAiMove re-checks post-yield state', () => {
+  it('newGame during AI thinking does not apply AI move to stale state', async () => {
+    useAppStore.getState().setMode('vs-computer');
+    useAppStore.getState().setAiMark('O');
+    // Human plays X. AI scheduled.
+    useAppStore.getState().attemptPlay(4 as CellIndex);
+    // Immediately new-game before AI's setTimeout(0) fires.
+    useAppStore.getState().newGame();
+    // Wait for any AI processing to settle.
+    for (let i = 0; i < 50; i++) {
+      if (!useAppStore.getState().aiThinking) break;
+      await new Promise<void>((r) => setTimeout(r, 1));
+    }
+    // After settle, the tree should be fresh — single root universe, empty
+    // move list. AI should NOT have applied any move from the old tree.
+    const s = useAppStore.getState();
+    expect(Object.keys(s.tree.universes)).toHaveLength(1);
+    expect(s.tree.universes[s.activeUniverseId]?.moves).toEqual([]);
+  });
+});
+
+describe('audit R3-P1-F: attemptPlay ignored while aiThinking', () => {
+  it('a human tap directly while aiThinking is true does not change the tree', () => {
+    // Force aiThinking to true and confirm attemptPlay no-ops.
+    useAppStore.getState().setMode('hotseat');
+    const lenBefore = fullMoves(
+      useAppStore.getState().tree,
+      useAppStore.getState().activeUniverseId,
+    ).length;
+    useAppStore.setState({ aiThinking: true });
+    useAppStore.getState().attemptPlay(0 as CellIndex);
+    expect(
+      fullMoves(useAppStore.getState().tree, useAppStore.getState().activeUniverseId).length,
+    ).toBe(lenBefore);
+    useAppStore.setState({ aiThinking: false });
+  });
+});
+
+describe('audit R3-P1-G: forward tap on AI turn is ignored', () => {
+  it('in vs-computer mode, tapping when toMove === aiMark is a no-op', () => {
+    useAppStore.getState().setMode('hotseat');
+    // build a state where O is to move (X plays 4)
+    useAppStore.getState().attemptPlay(4 as CellIndex);
+    // Now switch to vs-computer with aiMark=O — it's AI's turn.
+    // setMode triggers the AI move asynchronously; we want to test the SYNC
+    // refusal-of-tap on the AI's turn before AI fires.
+    useAppStore.getState().setAiMark('O');
+    useAppStore.setState({ mode: 'vs-computer' }); // sync mode flip skipping the auto-trigger
+    expect(
+      useAppStore.getState().tree.universes[useAppStore.getState().activeUniverseId]?.status.kind,
+    ).toBe('open');
+    // Try a forward tap. Should be ignored because it's AI's turn.
+    const lenBefore = fullMoves(
+      useAppStore.getState().tree,
+      useAppStore.getState().activeUniverseId,
+    ).length;
+    useAppStore.getState().attemptPlay(0 as CellIndex);
+    expect(
+      fullMoves(useAppStore.getState().tree, useAppStore.getState().activeUniverseId).length,
+    ).toBe(lenBefore);
+  });
+});

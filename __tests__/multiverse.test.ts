@@ -177,4 +177,41 @@ describe('multiverse tree', () => {
     t = a2.tree;
     assertTreeInvariants(t);
   });
+
+  it('builds a 50+ node tree quickly without invariant violations', () => {
+    // Spec "tree of 50+ nodes" performance check. We don't measure FPS here;
+    // we just confirm the construction/invariant check stays fast (< 200ms).
+    let t = createInitialTree();
+    const root = t.rootId;
+    // Seed: 3 forward moves on root
+    t = appendMove(t, root, 0 as CellIndex).tree;
+    t = appendMove(t, root, 4 as CellIndex).tree;
+    t = appendMove(t, root, 1 as CellIndex).tree;
+    // Now fork from various plies (1..2) for each parent we have so far.
+    const cellsToTry: readonly CellIndex[] = [2, 3, 5, 6, 7, 8] as readonly CellIndex[];
+    const parents: string[] = [root];
+    let nodes = 1;
+    let i = 0;
+    while (nodes < 55) {
+      const parentId = parents[i % parents.length];
+      if (!parentId) break;
+      const cell = cellsToTry[(i * 7) % cellsToTry.length];
+      if (cell === undefined) break;
+      try {
+        const r = fork(t, parentId, 1 + (i % 2), cell);
+        t = r.tree;
+        parents.push(r.universe.id);
+        nodes++;
+      } catch {
+        // Skip illegal forks (occupied/terminal/identical) — just advance.
+      }
+      i++;
+      if (i > 500) break; // safety guard
+    }
+    expect(nodes).toBeGreaterThanOrEqual(50);
+    const start = Date.now();
+    assertTreeInvariants(t);
+    const elapsed = Date.now() - start;
+    expect(elapsed).toBeLessThan(200);
+  });
 });

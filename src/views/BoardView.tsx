@@ -176,11 +176,13 @@ export function BoardView() {
           {Array.from({ length: 9 }).map((_, idx) => {
             const { x, y } = cellRect(idx);
             const v = displayed[idx];
+            const occupied = v !== null;
             return (
               <Pressable
                 key={`hit-${idx}`}
                 accessibilityRole="button"
                 accessibilityLabel={`Cell ${idx + 1}, ${v ?? 'empty'}`}
+                accessibilityState={{ disabled: occupied && atTip }}
                 style={{ position: 'absolute', left: x, top: y, width: CELL, height: CELL }}
                 onPress={() => attemptPlay(idx as CellIndex)}
               />

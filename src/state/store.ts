@@ -209,11 +209,25 @@ export const useAppStore = create<AppState>((set, get) => {
       const s = get();
       // Audit P1-7: refuse new tap while a branch prompt is pending
       if (s.pendingBranch) return;
+      // Audit R3-P1-F: refuse human tap while AI is thinking — otherwise human
+      // can "steal" the AI's turn by playing the AI's mark on a cell.
+      if (s.aiThinking) return;
 
       const active = s.tree.universes[s.activeUniverseId];
       if (!active) return;
+      // Audit R3-P1-G: in vs-computer mode, refuse forward taps when it's the
+      // AI's turn — the human should only be able to tap on their own turn.
+      // Scrubbed-back forks are still allowed (they re-trigger AI after fork).
       const full = fullMoves(s.tree, active.id);
       const scrubbedBack = s.scrubPly < full.length;
+      if (
+        !scrubbedBack &&
+        s.mode === 'vs-computer' &&
+        active.status.kind === 'open' &&
+        active.status.toMove === s.aiMark
+      ) {
+        return;
+      }
 
       if (scrubbedBack) {
         const existing = full[s.scrubPly];
@@ -294,7 +308,9 @@ export const useAppStore = create<AppState>((set, get) => {
       });
 
       get().recomputeProbHistory();
-      if (s.mode === 'vs-computer' && nextActive.status.kind === 'open' && nextActive.status.toMove === s.aiMark) {
+      // Audit R3-P1-A: use fresh store state (mode/aiMark could change while prompt open)
+      const fresh = get();
+      if (fresh.mode === 'vs-computer' && nextActive.status.kind === 'open' && nextActive.status.toMove === fresh.aiMark) {
         void get().triggerAiMove();
       }
     },
@@ -308,9 +324,18 @@ export const useAppStore = create<AppState>((set, get) => {
       // Audit P1-2: yield to UI so the "thinking…" indicator can render
       await new Promise<void>((resolve) => setTimeout(resolve, 0));
       try {
-        const cell = chooseMove(active.board, s.aiMark, s.aiLevel);
-        const moves = fullMoves(s.tree, active.id);
-        const { tree, universe } = playOrFork(s.tree, active.id, moves.length, cell);
+        // Audit R3-P1-H: re-read state after the yield. If the universe / mode /
+        // aiMark changed during our wait (e.g. user hit "new game" or switched
+        // active), bail out instead of applying the move to stale state.
+        const post = get();
+        const postActive = post.tree.universes[post.activeUniverseId];
+        if (!postActive || postActive.id !== active.id) return;
+        if (postActive.status.kind !== 'open') return;
+        if (post.mode !== 'vs-computer') return;
+        if (postActive.status.toMove !== post.aiMark) return;
+        const cell = chooseMove(postActive.board, post.aiMark, post.aiLevel);
+        const moves = fullMoves(post.tree, postActive.id);
+        const { tree, universe } = playOrFork(post.tree, postActive.id, moves.length, cell);
         const newPly = fullMoves(tree, universe.id).length;
         set({
           tree,

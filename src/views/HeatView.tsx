@@ -78,13 +78,13 @@ export function HeatView() {
                 },
               ]}
             >
-              {s.score >= 100 ? '★' : s.score >= 90 ? '⛨' : ''} {s.score.toFixed(1)}
+              {s.score >= 100 ? '★' : s.score >= 90 ? '◆' : ''} {s.score.toFixed(1)}
             </Text>
           );
         })}
       </View>
       <Text style={styles.legend}>
-        viridis · darker = weaker · ★ = immediate win · ⛨ = immediate block
+        viridis · darker = weaker · ★ = immediate win · ◆ = immediate block
       </Text>
     </View>
   );

@@ -1,0 +1,133 @@
+---
+title: "établi branchxo"
+sidebar: fr
+toc: true
+toc-depth: 2
+---
+
+
+> **branchxo**, c'est le morpion multivers : une partie classique de 3×3 avec une
+> particularité — vous pouvez remonter le long de la ligne de temps des coups, jouer
+> un coup *différent* et **bifurquer vers un nouvel univers** au lieu d'écraser
+> l'historique. Les deux lignes de temps coexistent côte à côte, et l'application
+> suit la probabilité de victoire/nul (face à un jeu parfait) pour chacune.
+> C'est pour quiconque aime cette envie du « et si j'avais joué là à la place ? »
+> rendue littérale.
+>
+> **Stack :** Expo (React Native) + TypeScript, état Zustand, graphiques
+> react-native-skia. Fait partie de la suite **établi**. Toutes les figures
+> ci-dessous sont de véritables captures d'écran de la version de production v0.1.0
+> sur un émulateur Android, régénérées par `scripts/capture.sh`.
+
+## Table des matières
+1. [Démarrage rapide](#quick-start)
+2. [Le plateau](#feature-the-board)
+3. [La ligne de temps des coups](#feature-the-move-timeline)
+4. [Bifurquer un univers (le multivers)](#feature-forking-a-universe)
+5. [L'arbre du multivers](#feature-the-multiverse-tree)
+6. [Vue de chaleur](#feature-heat-view)
+7. [Graphique de probabilité de victoire](#feature-win-probability)
+8. [Réglages et réinitialisation](#feature-settings--reset)
+9. [Vitrine / galerie](#showcase--gallery)
+10. [Reproduire ces figures](#reproducing-these-figures)
+11. [Version](#version)
+
+## Démarrage rapide
+1. Installez l'APK v0.1.0 (`branchxo-0.1.0.apk`) et ouvrez-le. L'application démarre à froid sur un univers de base tout neuf, avec un plateau 3×3 vide.
+
+   ![Accueil — un univers de base tout neuf](../assets/0.1.0/01-home-base.png)
+
+2. Les quatre onglets — **Plateau · Ligne de temps · Multivers · Chaleur** — changent la vue principale. Les pastilles d'état (X / O / nul / en cours / nombre d'univers) résument tout le multivers d'un coup d'œil.
+
+## Fonctionnalité : Le plateau
+Le plateau est un morpion ordinaire jusqu'à ce que vous commenciez à bifurquer. Touchez une case vide pour y placer le camp au trait ; le pied de page indique à qui c'est le tour.
+
+1. Touchez le centre — X joue.
+
+   ![X ouvre au centre](../assets/0.1.0/02-first-move.png)
+
+2. O répond dans un coin.
+
+   ![O répond dans un coin](../assets/0.1.0/03-o-reply.png)
+
+3. Après quelques coups, la bande de la ligne de temps et le graphique de probabilité se remplissent sous le plateau.
+
+   ![Une position de milieu de partie](../assets/0.1.0/04-midgame.png)
+
+## Fonctionnalité : La ligne de temps des coups
+Chaque demi-coup est enregistré. La vue **Ligne de temps** met l'historique des coups au premier plan — chaque miniature représente le plateau à ce demi-coup, et celle qui est surlignée correspond à votre position actuelle.
+
+![Vue de la ligne de temps — historique complet des coups](../assets/0.1.0/05-timeline-view.png)
+
+Toucher un demi-coup antérieur *rembobine* la partie jusqu'à ce point sans rien supprimer :
+
+![Rembobiné jusqu'au demi-coup 2](../assets/0.1.0/09-scrubbed-ply2.png)
+
+## Fonctionnalité : Bifurquer un univers
+C'est le cœur de branchxo. Après avoir rembobiné, si vous touchez une case **différente** de celle jouée à l'origine, le jeu demande si vous voulez bifurquer — car ce coup contredit le futur enregistré.
+
+1. Rembobiné jusqu'au demi-coup 2, touchez une nouvelle case → l'invite de bifurcation apparaît. L'univers d'origine est préservé ; en confirmant, vous en créez un nouveau à côté.
+
+   ![Bifurquer vers un nouvel univers ?](../assets/0.1.0/10-branch-prompt.png)
+
+2. Confirmez **Bifurquer** — vous êtes maintenant dans le nouvel univers, et l'en-tête montre le nombre d'univers augmenter d'un cran.
+
+   ![Après la bifurcation — de retour sur le plateau](../assets/0.1.0/11-after-branch.png)
+
+## Fonctionnalité : L'arbre du multivers
+La vue **Multivers** dessine chaque univers sous forme de nœud, relié au parent dont il a bifurqué. L'univers actif est cerclé ; les pastilles de synthèse comptent les victoires/nuls/parties en cours sur l'ensemble.
+
+1. Avec un seul univers, l'arbre est un unique nœud :
+
+   ![Multivers — un seul univers](../assets/0.1.0/06-multiverse-one.png)
+
+2. Après une bifurcation, deux univers pendent de la ligne de temps — parent et enfant :
+
+   ![Multivers — deux univers après une bifurcation](../assets/0.1.0/12-multiverse-two.png)
+
+## Fonctionnalité : Vue de chaleur
+La vue **Chaleur** superpose, case par case, à quel point chaque coup est bon pour le camp au trait (plus c'est lumineux, plus c'est fort), pour que vous puissiez lire les points de pression du plateau d'un coup d'œil.
+
+![Vue de chaleur sur l'univers de base](../assets/0.1.0/07-heat-view.png)
+
+Après une bifurcation, la chaleur reflète la position de l'univers actif :
+
+![Vue de chaleur dans un univers bifurqué](../assets/0.1.0/12b-heat-branched.png)
+
+## Fonctionnalité : Probabilité de victoire
+Sous le plateau, un **graphique de probabilité de victoire** (react-native-skia) trace P(X) / P(O) / P(nul) tout au long de la partie face à un jeu parfait, mis à jour à chaque coup — visible dans les figures de plateau ci-dessus (p. ex. [la position de milieu de partie](../assets/0.1.0/04-midgame.png)).
+
+## Fonctionnalité : Réglages et réinitialisation
+Le panneau de réglages se trouve sous chaque vue : **Mode** (Hotseat / contre l'ordinateur), **Niveau de l'IA** et **L'IA joue en tant que** (en mode contre l'ordinateur), **Mode de probabilité** (face au jeu parfait / face au jeu aléatoire), **superpositions d'indices** par joueur, et **Nouvelle partie (réinitialiser le multivers)**.
+
+![Panneau de réglages](../assets/0.1.0/13-settings.png)
+
+La réinitialisation replie toutes les bifurcations en un seul univers tout neuf :
+
+![Plateau tout neuf après réinitialisation](../assets/0.1.0/15-reset-fresh.png)
+
+## Vitrine / galerie
+| | | |
+|---|---|---|
+| ![](../assets/0.1.0/01-home-base.png) | ![](../assets/0.1.0/04-midgame.png) | ![](../assets/0.1.0/05-timeline-view.png) |
+| accueil / base | milieu de partie + graphique | ligne de temps |
+| ![](../assets/0.1.0/10-branch-prompt.png) | ![](../assets/0.1.0/12-multiverse-two.png) | ![](../assets/0.1.0/07-heat-view.png) |
+| invite de bifurcation | deux univers | chaleur |
+
+## Reproduire ces figures
+Toutes les figures sont générées à partir de la version de production en cours d'exécution par un harnais versionné :
+
+```bash
+# 1. compiler + installer l'APK de production sur un émulateur/appareil démarré
+npx expo run:android --variant release
+# 2. régénérer chaque figure dans vignettes/../assets/0.1.0/
+bash scripts/capture.sh
+```
+
+Réglages de l'appareil utilisés pour une capture déterministe : 1080×2400 @ 420 ppp,
+animations désactivées (`window/transition/animator_duration_scale = 0`). Les slugs
+dans `scripts/capture.sh` correspondent 1:1 aux noms de fichiers référencés ci-dessus.
+
+## Version
+Documente établi **branchxo v0.1.0** (applicationId `com.raban.branchxo`,
+versionCode 1). Fait partie de la suite établi (l'atelier).

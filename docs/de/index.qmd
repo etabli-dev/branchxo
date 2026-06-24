@@ -1,0 +1,133 @@
+---
+title: "établi branchxo"
+sidebar: de
+toc: true
+toc-depth: 2
+---
+
+
+> **branchxo** ist Multiversum-Tic-Tac-Toe: ein normales 3×3-Spiel mit einem
+> Kniff — Sie können die Zugzeitleiste zurückspulen, einen *anderen* Zug spielen
+> und **ein neues Universum abzweigen**, anstatt die Historie zu überschreiben.
+> Beide Zeitleisten bestehen nebeneinander fort, und die App verfolgt die
+> Sieg-/Remis-Wahrscheinlichkeit (gegen perfektes Spiel) für jede einzelne.
+> Sie ist für alle, die den Reiz des „Was wäre, wenn ich stattdessen dort gespielt
+> hätte?" wörtlich genommen mögen.
+>
+> **Stack:** Expo (React Native) + TypeScript, Zustand-State, react-native-skia-Diagramme.
+> Teil der **établi**-Suite. Alle nachstehenden Abbildungen sind echte Screenshots
+> des v0.1.0-Release-Builds auf einem Android-Emulator, neu erzeugt durch
+> `scripts/capture.sh`.
+
+## Inhaltsverzeichnis
+1. [Schnellstart](#quick-start)
+2. [Das Spielbrett](#feature-the-board)
+3. [Die Zugzeitleiste](#feature-the-move-timeline)
+4. [Ein Universum abzweigen (das Multiversum)](#feature-forking-a-universe)
+5. [Der Multiversum-Baum](#feature-the-multiverse-tree)
+6. [Heat-Ansicht](#feature-heat-view)
+7. [Sieg-Wahrscheinlichkeits-Diagramm](#feature-win-probability)
+8. [Einstellungen und Zurücksetzen](#feature-settings--reset)
+9. [Schaukasten / Galerie](#showcase--gallery)
+10. [Diese Abbildungen reproduzieren](#reproducing-these-figures)
+11. [Version](#version)
+
+## Schnellstart
+1. Installieren Sie das v0.1.0-APK (`branchxo-0.1.0.apk`) und öffnen Sie es. Die App startet kalt in ein frisches Basis-Universum mit einem leeren 3×3-Spielbrett.
+
+   ![Startbildschirm — ein frisches Basis-Universum](../assets/0.1.0/01-home-base.png)
+
+2. Die vier Reiter — **Brett · Zeitleiste · Multiversum · Heat** — wechseln die Hauptansicht. Die Status-Plaketten (X / O / Remis / offen / Universenzahl) fassen das gesamte Multiversum auf einen Blick zusammen.
+
+## Funktion: Das Spielbrett
+Das Brett ist gewöhnliches Tic-Tac-Toe, bis Sie zu verzweigen beginnen. Tippen Sie auf ein leeres Feld, um die ziehende Seite zu setzen; die Fußzeile zeigt an, wer am Zug ist.
+
+1. Tippen Sie auf die Mitte — X zieht.
+
+   ![X eröffnet in der Mitte](../assets/0.1.0/02-first-move.png)
+
+2. O antwortet in einer Ecke.
+
+   ![O antwortet in einer Ecke](../assets/0.1.0/03-o-reply.png)
+
+3. Nach einigen Zügen füllen sich der Zeitleisten-Streifen und das Wahrscheinlichkeits-Diagramm unter dem Brett.
+
+   ![Eine Mittelspiel-Stellung](../assets/0.1.0/04-midgame.png)
+
+## Funktion: Die Zugzeitleiste
+Jeder Halbzug wird festgehalten. Die **Zeitleisten**-Ansicht rückt die Zughistorie in den Vordergrund — jede Miniatur zeigt das Brett bei diesem Halbzug, und die hervorgehobene markiert Ihre aktuelle Position.
+
+![Zeitleisten-Ansicht — vollständige Zughistorie](../assets/0.1.0/05-timeline-view.png)
+
+Das Antippen eines früheren Halbzugs *spult* das Spiel bis zu diesem Punkt zurück, ohne etwas zu löschen:
+
+![Zurückgespult bis Halbzug 2](../assets/0.1.0/09-scrubbed-ply2.png)
+
+## Funktion: Ein Universum abzweigen
+Dies ist das Herzstück von branchxo. Wenn Sie nach dem Zurückspulen ein **anderes** Feld antippen als das ursprünglich gespielte, fragt das Spiel, ob Sie abzweigen möchten — denn dieser Zug widerspricht der aufgezeichneten Zukunft.
+
+1. Bis Halbzug 2 zurückgespult, tippen Sie auf ein frisches Feld → die Abzweig-Abfrage erscheint. Das ursprüngliche Universum bleibt erhalten; mit dem Bestätigen entsteht ein neues daneben.
+
+   ![Ein neues Universum abzweigen?](../assets/0.1.0/10-branch-prompt.png)
+
+2. Bestätigen Sie **Abzweigen** — Sie befinden sich nun im neuen Universum, und die Kopfzeile zeigt, wie die Universenzahl um eins steigt.
+
+   ![Nach dem Abzweigen — zurück auf dem Brett](../assets/0.1.0/11-after-branch.png)
+
+## Funktion: Der Multiversum-Baum
+Die **Multiversum**-Ansicht zeichnet jedes Universum als Knoten, verbunden mit dem Elternuniversum, von dem es abgezweigt wurde. Das aktive Universum ist umringt; die Übersichts-Plaketten zählen Siege/Remis/offene Partien über alle hinweg.
+
+1. Bei einem einzigen Universum ist der Baum ein einzelner Knoten:
+
+   ![Multiversum — ein Universum](../assets/0.1.0/06-multiverse-one.png)
+
+2. Nach einer Abzweigung hängen zwei Universen an der Zeitleiste — Eltern- und Kinduniversum:
+
+   ![Multiversum — zwei Universen nach einer Abzweigung](../assets/0.1.0/12-multiverse-two.png)
+
+## Funktion: Heat-Ansicht
+Die **Heat**-Ansicht überlagert feldweise, wie gut jeder Zug für die ziehende Seite ist (heller = stärker), sodass Sie die Druckpunkte des Bretts auf einen Blick ablesen können.
+
+![Heat-Ansicht im Basis-Universum](../assets/0.1.0/07-heat-view.png)
+
+Nach dem Abzweigen spiegelt die Heat-Ansicht die Stellung des aktiven Universums wider:
+
+![Heat-Ansicht in einem abgezweigten Universum](../assets/0.1.0/12b-heat-branched.png)
+
+## Funktion: Sieg-Wahrscheinlichkeit
+Unter dem Brett zeichnet ein **Sieg-Wahrscheinlichkeits-Diagramm** (react-native-skia) P(X) / P(O) / P(Remis) über die Partie hinweg gegen perfektes Spiel und aktualisiert sich bei jedem Zug — sichtbar in den obigen Brett-Abbildungen (z. B. [die Mittelspiel-Stellung](../assets/0.1.0/04-midgame.png)).
+
+## Funktion: Einstellungen und Zurücksetzen
+Das Einstellungsfeld befindet sich unter jeder Ansicht: **Modus** (Hotseat / gegen Computer), **KI-Stufe** und **KI spielt als** (bei gegen Computer), **Wahrscheinlichkeits-Modus** (gegen perfektes / gegen zufälliges Spiel), **Hinweis-Überlagerungen** pro Spieler und **Neues Spiel (Multiversum zurücksetzen)**.
+
+![Einstellungsfeld](../assets/0.1.0/13-settings.png)
+
+Das Zurücksetzen klappt jede Abzweigung wieder zu einem einzigen frischen Universum zusammen:
+
+![Frisches Brett nach dem Zurücksetzen](../assets/0.1.0/15-reset-fresh.png)
+
+## Schaukasten / Galerie
+| | | |
+|---|---|---|
+| ![](../assets/0.1.0/01-home-base.png) | ![](../assets/0.1.0/04-midgame.png) | ![](../assets/0.1.0/05-timeline-view.png) |
+| Start / Basis | Mittelspiel + Diagramm | Zeitleiste |
+| ![](../assets/0.1.0/10-branch-prompt.png) | ![](../assets/0.1.0/12-multiverse-two.png) | ![](../assets/0.1.0/07-heat-view.png) |
+| Abzweig-Abfrage | zwei Universen | Heat |
+
+## Diese Abbildungen reproduzieren
+Alle Abbildungen werden aus dem laufenden Release-Build durch ein versioniertes Harness erzeugt:
+
+```bash
+# 1. Release-APK auf einem gestarteten Emulator/Gerät bauen + installieren
+npx expo run:android --variant release
+# 2. jede Abbildung neu in vignettes/../assets/0.1.0/ erzeugen
+bash scripts/capture.sh
+```
+
+Für die deterministische Erfassung verwendete Geräteeinstellungen: 1080×2400 @ 420 dpi,
+Animationen deaktiviert (`window/transition/animator_duration_scale = 0`). Die Slugs
+in `scripts/capture.sh` entsprechen 1:1 den oben referenzierten Dateinamen.
+
+## Version
+Dokumentiert établi **branchxo v0.1.0** (applicationId `com.raban.branchxo`,
+versionCode 1). Teil der établi-Suite (Werkbank).

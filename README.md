@@ -2,6 +2,7 @@
 
 > **Multiverse Tic-Tac-Toe** — a branching-timeline twist on the classic 3×3 game.
 > React Native + Expo (SDK 51) + TypeScript (strict).
+> Repository: <https://github.com/etabli-dev/etabli-branchxo>
 
 `branchxo` is not ordinary tic-tac-toe. Every move is recorded on an explicit
 **timeline**, and you can scrub back and **branch** into a parallel universe by
